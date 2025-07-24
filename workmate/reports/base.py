@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
-class Report(ABC):
+class BaseReport(ABC):
+    """Базовый класс для всех отчётов"""
+    
     @abstractmethod
     def generate(self, stats):
+        """Генерация отчёта на основе статистики"""
         pass

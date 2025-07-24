@@ -17,11 +17,14 @@ def process_logs(files, date_filter=None):
     if not files:
         raise ValueError("Не указаны файлы для обработки")
 
-    stats = defaultdict(lambda: {'count': 0, 'total_time': 0.0})
+    stats = {
+        'aggregated': defaultdict(lambda: {'count': 0, 'total_time': 0.0}),
+        'raw_logs': []
+    }
 
     filter_date = date_filter
     if date_filter:
-        if not isinstance(date_filter, date): # Проверка, что date_filter это datetime.date
+        if not isinstance(date_filter, date):
             raise TypeError("date_filter должен быть объектом datetime.date")
 
 
@@ -64,12 +67,16 @@ def process_logs(files, date_filter=None):
 
     return stats
 
+
 def _update_stats(stats, log):
-    """Обновляет статистику на основе одной записи лога"""
     try:
+        if 'url' not in log or 'response_time' not in log:
+            return
+            
         url = log['url']
         response_time = float(log['response_time'])
-        stats[url]['count'] += 1
-        stats[url]['total_time'] += response_time
+        stats['aggregated'][url]['count'] += 1
+        stats['aggregated'][url]['total_time'] += response_time
+        stats['raw_logs'].append(log)
     except (KeyError, ValueError) as e:
-        print(f"Ошибка обработки записи лога: {e}")
+        print(f"Ошибка обработки записи лога: {log.get('url', 'unknown')}")

@@ -3,17 +3,9 @@ import os
 from collections import defaultdict
 from datetime import datetime, date
 
+
 def process_logs(files, date_filter=None):
-    """
-    Обрабатывает лог-файлы и возвращает статистику
-
-    Args:
-        files: список путей к файлам логов
-        date_filter: дата для фильтрации (datetime.date)
-
-    Returns:
-        словарь с статистикой вида {url: {'count': int, 'total_time': float}}
-    """
+    """Обрабатывает лог-файлы и возвращает статистику."""
     if not files:
         raise ValueError("Не указаны файлы для обработки")
 
@@ -23,17 +15,19 @@ def process_logs(files, date_filter=None):
     }
 
     filter_date = date_filter
-    if date_filter:
-        if not isinstance(date_filter, date):
-            raise TypeError("date_filter должен быть объектом datetime.date")
-
+    if date_filter and not isinstance(date_filter, date):
+        raise TypeError("date_filter должен быть объектом datetime.date")
 
     for file_path in files:
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Файл не найден: {file_path}")
+            raise FileNotFoundError(
+                f"Файл не найден: {file_path}"
+            )
 
         if not os.path.isfile(file_path):
-            raise ValueError(f"Указанный путь не является файлом: {file_path}")
+            raise ValueError(
+                f"Указанный путь не является файлом: {file_path}"
+            )
 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -45,11 +39,13 @@ def process_logs(files, date_filter=None):
                             continue
 
                         if filter_date:
+                            log_timestamp = log.get('@timestamp')
+                            if not log_timestamp:
+                                continue
                             try:
-                                log_timestamp = log.get('@timestamp')
-                                if not log_timestamp:
-                                    continue
-                                log_date = datetime.fromisoformat(log_timestamp).date()
+                                log_date = datetime.fromisoformat(
+                                    log_timestamp
+                                ).date()
                                 if log_date != filter_date:
                                     continue
                             except (ValueError, TypeError):
@@ -58,7 +54,11 @@ def process_logs(files, date_filter=None):
                         _update_stats(stats, log)
 
                     except json.JSONDecodeError as e:
-                        print(f"Ошибка в файле {file_path}, строка {line_num}: некорректный JSON - {e}")
+                        msg = (
+                            f"Ошибка в файле {file_path}, "
+                            f"строка {line_num}: некорректный JSON - {e}"
+                        )
+                        print(msg)
                         continue
 
         except IOError as e:
@@ -72,11 +72,11 @@ def _update_stats(stats, log):
     try:
         if 'url' not in log or 'response_time' not in log:
             return
-            
+
         url = log['url']
         response_time = float(log['response_time'])
         stats['aggregated'][url]['count'] += 1
         stats['aggregated'][url]['total_time'] += response_time
         stats['raw_logs'].append(log)
-    except (KeyError, ValueError) as e:
+    except (KeyError, ValueError):
         print(f"Ошибка обработки записи лога: {log.get('url', 'unknown')}")

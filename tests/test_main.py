@@ -4,6 +4,7 @@ from main import main
 
 class TestMain:
     """Тесты для основной функции main."""
+
     @patch('main.parse_args')
     @patch('main.process_logs')
     @patch('main.generate_report')
@@ -35,7 +36,11 @@ class TestMain:
         args.report = "average"
         args.date = "2023-01-01"
         mock_parse.return_value = args
-        with patch('main.process_logs') as mock_process, \
-             patch('main.generate_report') as mock_report:
-            main()
-            mock_process.assert_called_once_with(["file1.log"], date_filter=args.date)
+
+        with patch('main.process_logs') as mock_process:
+            with patch('main.generate_report'):
+                main()
+                mock_process.assert_called_once_with(
+                    ["file1.log"],
+                    date_filter=args.date
+                )

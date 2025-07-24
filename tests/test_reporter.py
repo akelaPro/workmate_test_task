@@ -1,8 +1,8 @@
-# tests/test_reporter.py
 import pytest
 from workmate.reporter import generate_report
 from workmate.reports.average import AverageReport
 from collections import defaultdict
+
 
 class TestAverageReport:
     @pytest.fixture
@@ -18,7 +18,7 @@ class TestAverageReport:
     def test_prepare_data(self, sample_stats):
         report = AverageReport()
         data = report._prepare_data(sample_stats['aggregated'])
-        
+
         assert len(data) == 2
         assert data[0] == ["/api", 10, "0.500s"]
         assert data[1] == ["/home", 5, "0.500s"]
@@ -27,7 +27,7 @@ class TestAverageReport:
     def test_generate_report(self, sample_stats, capsys):
         report = AverageReport()
         report.generate(sample_stats)
-        
+
         captured = capsys.readouterr()
         assert "Endpoint" in captured.out
         assert "Requests" in captured.out
@@ -40,7 +40,7 @@ class TestAverageReport:
             'aggregated': defaultdict(lambda: {'count': 0, 'total_time': 0.0}),
             'raw_logs': []
         }
-        
+
         report = AverageReport()
         data = report._prepare_data(stats['aggregated'])
         assert len(data) == 0
@@ -50,7 +50,7 @@ class TestAverageReport:
             'aggregated': {"/test": {"count": 0, "total_time": 0.0}},
             'raw_logs': []
         }
-        
+
         report = AverageReport()
         data = report._prepare_data(stats['aggregated'])
         assert len(data) == 0
@@ -62,7 +62,7 @@ class TestReportFactory:
             'aggregated': {"/test": {"count": 2, "total_time": 1.0}},
             'raw_logs': []
         }
-        
+
         generate_report(stats, "average")
         captured = capsys.readouterr()
         assert "/test" in captured.out
